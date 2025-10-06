@@ -61,12 +61,18 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> CreateUser(CreateUserDTO user)
         {
             var response = new BaseResponse();
-            var result = await _userService.CreateUserAsync(user);            
+            var result = await _userService.CreateUser(user);            
             if (result != null)
             {
                 if (result.RegistrationNumber == "01")
                 {
                     response.ResponseMessage = "Email Already Exist";
+                    response.Result = result;
+                    return BadRequest(response);
+                }
+                else if (result.RegistrationNumber == "02")
+                {
+                    response.ResponseMessage = "Email Validation Error";
                     response.Result = result;
                     return BadRequest(response);
                 }
@@ -128,7 +134,7 @@ namespace TaskFlow.WebApi.Controllers
                 return Ok(response);                
                 //return Redirect("");
             }
-            return BadRequest(new BaseNullResponse());
+            return BadRequest(new BaseNullResponse() { Result = result});
 
         }
 
@@ -149,7 +155,7 @@ namespace TaskFlow.WebApi.Controllers
                 //TO-DO: remove google link and replace with appropriate url
                 //return Redirect("https://google.com");
             }
-            return BadRequest(new BaseNullResponse() { ResponseMessage = "Something went wron while sending account confirmation email"});
+            return BadRequest(new BaseNullResponse() { ResponseMessage = "Something went wrong while sending account confirmation email"});
         }
     }
 }

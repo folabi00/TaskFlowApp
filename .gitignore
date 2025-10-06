@@ -9,6 +9,9 @@
 /appsettings.Development.json
 /src/WebApi/appsettings.Development.json
 
+/bin
+/obj
+
 # User-specific files
 *.rsuser
 *.suo
