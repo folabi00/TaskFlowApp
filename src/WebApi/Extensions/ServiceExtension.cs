@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
-using TaskFlow.Core.Data;
-using TaskFlow.Core.Interfaces;
+using TaskFlow.Application.Interfaces;
 using TaskFlow.Infrastructure.Services;
+using TaskFlow.Application.ApplicationServices;
+using TaskFlow.Infrastructure.Persistence.Data;
+using TaskFlow.Infrastructure.Helpers;
+using TaskFlow.Infrastructure.Persistence.Repositories;
 
 namespace TaskFlow.WebApi.Extensions
 {
@@ -20,6 +23,9 @@ namespace TaskFlow.WebApi.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IEmailService, EmailSender>();
+            services.AddScoped<IUserRegistrationNumberGenerator, UserRegistrationNumberGenerator>();
+            services.AddScoped<IHashingService, HashingUtility>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddMemoryCache();
 

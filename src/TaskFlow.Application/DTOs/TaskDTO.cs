@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskFlow.Core.Models;
 
-namespace TaskFlow.Core.DTOs
+namespace TaskFlow.Application.DTOs
 {
     public class TaskDTO
     {

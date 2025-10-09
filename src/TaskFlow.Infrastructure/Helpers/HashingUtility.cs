@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Cryptography;
 using System.Text;
+using TaskFlow.Application.Interfaces;
 
 namespace TaskFlow.Infrastructure.Helpers
 {
-    public class HashingUtility
+    public class HashingUtility : IHashingService
     {
-        public static void HashPassword(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        public void HashPassword(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using(var hmac = new HMACSHA512())
             {
@@ -17,7 +18,7 @@ namespace TaskFlow.Infrastructure.Helpers
             }
             return;
         }
-        public static bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
+        public bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
             using(var hmac = new HMACSHA512(storedSalt))
             {
@@ -27,7 +28,7 @@ namespace TaskFlow.Infrastructure.Helpers
             }
         }
 
-        public static string GenerateConfirmationToken()
+        public string GenerateConfirmationToken()
         {
             int bytes = 32;
             var b = new byte[bytes];
@@ -36,7 +37,7 @@ namespace TaskFlow.Infrastructure.Helpers
             return base64String.Replace('+', '-').Replace('/','_').TrimEnd('=');
         }
 
-        public static string HashToken(string token)
+        public string HashToken(string token)
         {
             var bytes = Encoding.UTF8.GetBytes(token);
             using var sha = SHA256.Create();

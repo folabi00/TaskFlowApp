@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskFlow.Core.Models;
+using Task = TaskFlow.Core.Models.Task;
 
-namespace TaskFlow.Core.Data
+namespace TaskFlow.Infrastructure.Persistence.Data
 {
     public class AppDBContext: DbContext
     {
@@ -15,7 +16,7 @@ namespace TaskFlow.Core.Data
             
         }
         public DbSet<User> Users { get; set; }
-        public DbSet<Models.Task> Tasks { get; set; }
+        public DbSet<Task> Tasks { get; set; }
         public DbSet<UserConfirmationToken> UserConfirmationTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

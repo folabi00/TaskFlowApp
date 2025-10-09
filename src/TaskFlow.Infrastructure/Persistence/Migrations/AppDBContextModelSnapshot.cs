@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TaskFlow.Core.Data;
+using TaskFlow.Infrastructure.Persistence.Data;
 
 #nullable disable
 
-namespace TaskFlow.WebApi.Migrations
+namespace TaskFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20250929230608_AddedConfirmationTokenForEmail")]
-    partial class AddedConfirmationTokenForEmail
+    partial class AppDBContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

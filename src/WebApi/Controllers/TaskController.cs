@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TaskFlow.Core.Data;
+using TaskFlow.Infrastructure.Persistence.Data;
 
 namespace TaskFlow.WebApi.Controllers
 {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace TaskFlow.WebApi.Migrations
+namespace TaskFlow.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class UniqueIndexAddition : Migration

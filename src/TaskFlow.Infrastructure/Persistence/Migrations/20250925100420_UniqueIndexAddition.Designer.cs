@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TaskFlow.Core.Data;
+using TaskFlow.Infrastructure.Persistence.Data;
 
 #nullable disable
 
-namespace TaskFlow.WebApi.Migrations
+namespace TaskFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250925100420_UniqueIndexAddition")]
+    partial class UniqueIndexAddition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,9 +48,6 @@ namespace TaskFlow.WebApi.Migrations
                     b.Property<int>("TaskStatus")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.ToTable("Tasks");
@@ -64,7 +64,7 @@ namespace TaskFlow.WebApi.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
@@ -74,9 +74,6 @@ namespace TaskFlow.WebApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HasCurrentTask")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
@@ -92,7 +89,7 @@ namespace TaskFlow.WebApi.Migrations
                         .HasColumnType("varbinary(max)");
 
                     b.Property<string>("RegistrationNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TotalTasksAssigned")
                         .HasColumnType("int");
@@ -105,63 +102,7 @@ namespace TaskFlow.WebApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("RegistrationNumber")
-                        .IsUnique()
-                        .HasFilter("[RegistrationNumber] IS NOT NULL");
-
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("TaskFlow.Core.Models.UserConfirmationToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TokenPurposee")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "TokenHash");
-
-                    b.ToTable("UserConfirmationTokens");
-                });
-
-            modelBuilder.Entity("TaskFlow.Core.Models.UserConfirmationToken", b =>
-                {
-                    b.HasOne("TaskFlow.Core.Models.User", "User")
-                        .WithMany("UserConfirmationTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TaskFlow.Core.Models.User", b =>
-                {
-                    b.Navigation("UserConfirmationTokens");
                 });
 #pragma warning restore 612, 618
         }

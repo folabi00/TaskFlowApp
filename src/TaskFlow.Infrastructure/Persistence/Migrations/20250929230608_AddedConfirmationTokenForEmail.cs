@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TaskFlow.WebApi.Migrations
+namespace TaskFlow.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class AddedConfirmationTokenForEmail : Migration

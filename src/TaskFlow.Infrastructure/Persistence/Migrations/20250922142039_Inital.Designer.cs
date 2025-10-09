@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TaskFlow.Core.Data;
+using TaskFlow.Infrastructure.Persistence.Data;
 
 #nullable disable
 
-namespace TaskFlow.WebApi.Migrations
+namespace TaskFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20250927234341_IsDeletedAndTaskMappiing")]
-    partial class IsDeletedAndTaskMappiing
+    [Migration("20250922142039_Inital")]
+    partial class Inital
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,9 +48,6 @@ namespace TaskFlow.WebApi.Migrations
                     b.Property<int>("TaskStatus")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.ToTable("Tasks");
@@ -61,9 +58,6 @@ namespace TaskFlow.WebApi.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CurrentTask")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -83,16 +77,12 @@ namespace TaskFlow.WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("PasswordHash")
+                    b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<byte[]>("PasswordSalt")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RegistrationNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TotalTasksAssigned")
                         .HasColumnType("int");
@@ -104,10 +94,6 @@ namespace TaskFlow.WebApi.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RegistrationNumber")
-                        .IsUnique()
-                        .HasFilter("[RegistrationNumber] IS NOT NULL");
 
                     b.ToTable("Users");
                 });

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFlow.Core.Interfaces;
+using TaskFlow.Application.Interfaces;
 
-namespace TaskFlow.Infrastructure.Services
+namespace TaskFlow.Application.ApplicationServices
 {
     public class TaskService : ITaskService
     {

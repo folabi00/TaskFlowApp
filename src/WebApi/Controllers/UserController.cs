@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TaskFlow.Core.DTOs;
-using TaskFlow.Core.Interfaces;
-using TaskFlow.Core.Models;
+using TaskFlow.Application.DTOs;
+using TaskFlow.Application.Interfaces;
+using TaskFlow.Core.Commons;
 using TaskFlow.Infrastructure.Services;
 
 namespace TaskFlow.WebApi.Controllers
@@ -18,20 +18,20 @@ namespace TaskFlow.WebApi.Controllers
         }
 
         [HttpGet("get-all-users")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             var response = new BaseResponse();
 
-            var users = await _userService.GetAllUsers();
+            var users = await _userService.GetAllUsers(pageNumber,pageSize);
             if (users != null)
             {
-                if(users.Count > 0)
+                if(users.TotalCount > 0)
                 {
                     response.ResponseMessage = "Users request successful";
                     response.Result = users;
                     return Ok(response);
                 }
-                response.ResponseMessage = $"{users.Count} user(s) found";
+                response.ResponseMessage = $"{users.TotalCount} user(s) found";
                 response.Result = users;
                 return Ok(response);
             }
@@ -126,7 +126,7 @@ namespace TaskFlow.WebApi.Controllers
             {
                 return BadRequest(new BaseNullResponse());
             }
-            var result = await _userService.ConfirmEmailAsync(userId, token);
+            var result = await _userService.ConfirmEmail(userId, token);
             if (result == true)
             {
                 response.ResponseMessage = $"User Email verification successful";
@@ -146,7 +146,7 @@ namespace TaskFlow.WebApi.Controllers
             {
                 return BadRequest(new BaseNullResponse());
             }
-            var result = await _userService.ResendConfirmationAsync(userId);
+            var result = await _userService.ResendConfirmation(userId);
             if (result == true)
             {
                 response.ResponseMessage = $"User Email successfully validated";
