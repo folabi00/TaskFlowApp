@@ -20,5 +20,6 @@ namespace TaskFlow.Application.Interfaces
         Task UpdateUserAsync(UserDTO userDTO);
         Task<bool> ConfirmEmailAsync(Guid userId, string token);
         Task StoreUserTokenAsync(UserConfirmationToken token);
+        Task<User> ValidateUser(string email);
     }
 }

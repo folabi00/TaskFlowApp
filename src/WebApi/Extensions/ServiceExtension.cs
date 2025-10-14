@@ -19,13 +19,16 @@ namespace TaskFlow.WebApi.Extensions
 
 
             services.AddDbContext<AppDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), 
-                sql => sql.MigrationsAssembly("TaskFlow.WebApi")));
+                sql => sql.MigrationsAssembly("TaskFlow.Infrastructure")));
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IEmailService, EmailSender>();
             services.AddScoped<IUserRegistrationNumberGenerator, UserRegistrationNumberGenerator>();
             services.AddScoped<IHashingService, HashingUtility>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
             services.AddMemoryCache();
 

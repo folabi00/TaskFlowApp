@@ -160,5 +160,15 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
 
             return;
         }
+
+        public async Task<User> ValidateUser(string email)
+        {
+            string methodName = "ValidateUser";
+            var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            _logger.LogInformation($"[{ClassName}] [{methodName}] : User {user.Email} found");
+
+            return user;
+            
+        }
     }
 }

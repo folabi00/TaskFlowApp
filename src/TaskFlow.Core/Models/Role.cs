@@ -9,8 +9,8 @@ namespace TaskFlow.Core.Models
     public class Role
     {
         public int Id { get; set; }
-        public string RoleName { get; set; }
-        public string RoleDescription { get; set; }
+        public string RoleName { get; set; } = string.Empty;
+        public string RoleDescription { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     }
 }

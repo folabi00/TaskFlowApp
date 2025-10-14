@@ -50,7 +50,7 @@ namespace TaskFlow.Infrastructure.Services
             try
             {
                 var emailexist = await _userRepository.GetEmailCountAsync(userDTO.Email);
-                if (emailexist >= 1)
+                if (emailexist >= 1) 
                 {
                     if(emailexist != -1)
                     {
