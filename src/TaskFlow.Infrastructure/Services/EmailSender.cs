@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFlow.Core.Interfaces;
+using TaskFlow.Application.Interfaces;
 using TaskFlow.Core.Models;
 
 namespace TaskFlow.Infrastructure.Services

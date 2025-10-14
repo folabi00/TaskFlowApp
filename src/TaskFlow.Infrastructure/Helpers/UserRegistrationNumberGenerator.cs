@@ -5,18 +5,19 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFlow.Core.Data;
+using TaskFlow.Application.Interfaces;
+using TaskFlow.Infrastructure.Persistence.Data;
 
 namespace TaskFlow.Infrastructure.Helpers
 {
-    public class UserRegistrationNumberGenerator
+    public class UserRegistrationNumberGenerator : IUserRegistrationNumberGenerator
     {
         private readonly AppDBContext _appDBContext;
         public UserRegistrationNumberGenerator(AppDBContext appDBContext)
         {
             _appDBContext = appDBContext;
         }
-        public async Task<long> GenerateRegNumber()
+        public async Task<long> GenerateRegNumberAsync()
         {
             long number;
             do
