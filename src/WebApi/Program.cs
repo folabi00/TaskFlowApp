@@ -1,6 +1,7 @@
 using Serilog;
 using Serilog.AspNetCore;
 using TaskFlow.WebApi.Extensions;
+using TaskFlow.WebApi.Middlewares;
 
 namespace TaskFlow.WebApi
 {
@@ -24,6 +25,7 @@ namespace TaskFlow.WebApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 

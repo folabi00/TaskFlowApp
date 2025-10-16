@@ -14,6 +14,7 @@ namespace TaskFlow.Infrastructure.Services
 {
     public class EmailSender : IEmailService
     {
+        private const string ClassName = "EmailSender";
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailSender> _logger;
         public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger)
@@ -24,11 +25,12 @@ namespace TaskFlow.Infrastructure.Services
 
         public async Task<string> SendEmailAsync(string recipientMail, string subject, string htmlBody)
         {
+            string methodName = nameof(SendEmailAsync);
             try
             {
 
                 var smtpServer = _configuration["EmailSettings:SmtpServer"];
-                var port = int.Parse(_configuration["EmailSettings:Port"]);
+                var port = int.Parse(_configuration["EmailSettings:Port"]!);
                 var username = _configuration["EmailSettings:Username"];
                 var password = _configuration["EmailSettings:Password"];
                 var fromEmail = _configuration["EmailSettings:FromEmail"];
@@ -39,33 +41,27 @@ namespace TaskFlow.Infrastructure.Services
                 email.To.Add(new MailboxAddress("", recipientMail));
                 email.Subject = subject;
 
-                //Email body(HTML or plain text)
                 email.Body = new TextPart("html")
                 {
                     Text = htmlBody
                 };
 
-                // Configure the SMTP client
                 using (var smtpClient = new SmtpClient())
                 {
-                    // Connect to the SMTP server
                     await smtpClient.ConnectAsync(smtpServer, port, MailKit.Security.SecureSocketOptions.SslOnConnect);
 
-                    // Authenticate with the SMTP server
                     await smtpClient.AuthenticateAsync(username, password);
 
-                    // Send the email
                     await smtpClient.SendAsync(email);
-                    _logger.LogInformation($"{subject} Email successfully sent to {recipientMail} ");
-                    // Disconnect from the SMTP server
+                    _logger.LogInformation($"[{ClassName}] [{methodName}] : {subject} Email successfully sent to {recipientMail} ");
+
                     await smtpClient.DisconnectAsync(true);
                 }
-
                 return "Email Sent successfully";
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex, $"An error {ex.Message} occured while trying to send email {subject} to {recipientMail}");
+                _logger.LogError(ex, $"[{ClassName}] [{methodName}] :An error {ex.Message} occured while trying to send email {subject} to {recipientMail}");
                 return string.Empty;
             }
         }
