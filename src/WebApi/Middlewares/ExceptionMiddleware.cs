@@ -35,9 +35,10 @@ namespace TaskFlow.WebApi.Middlewares
                     NullReferenceException => StatusCodes.Status400BadRequest,
                     _ => StatusCodes.Status500InternalServerError
                 };
+                var statusCode = context.Response.StatusCode;
                 await context.Response.WriteAsJsonAsync(new ProblemDetails
                 {
-                    Status = StatusCodes.Status500InternalServerError,
+                    Status = statusCode,
                     Title = "An internal error occured",
                     Type = ex.GetType().Name,
                     Detail = _environment.IsDevelopment() ? ex.Message : "Something went wrong while processing request"

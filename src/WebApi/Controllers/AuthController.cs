@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Application.DTOs;
@@ -7,6 +8,7 @@ using TaskFlow.Application.Interfaces;
 namespace TaskFlow.WebApi.Controllers
 {
     [Route("api/[controller]")]
+    [ApiVersion(1.0)]
     [ApiController]
     public class AuthController : ControllerBase
     {

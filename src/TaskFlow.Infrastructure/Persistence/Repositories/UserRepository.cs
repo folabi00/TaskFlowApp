@@ -165,8 +165,10 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         {
             string methodName = "ValidateUser";
             var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            _logger.LogInformation($"[{ClassName}] [{methodName}] : User {user.Email} found");
-
+            if (user is null)
+            {
+                _logger.LogInformation($"[{ClassName}] [{methodName}] : User not found");
+            }
             return user;
             
         }

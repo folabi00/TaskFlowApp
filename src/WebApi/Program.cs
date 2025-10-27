@@ -1,3 +1,4 @@
+using Asp.Versioning.ApiExplorer;
 using Serilog;
 using Serilog.AspNetCore;
 using TaskFlow.WebApi.Extensions;
@@ -18,14 +19,25 @@ namespace TaskFlow.WebApi
             builder.Host.UseSerilog();
             var app = builder.Build();
 
+            var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
             Log.Information("Application starting...");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var desc in provider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json",
+                                                desc.GroupName.ToUpperInvariant());
+                    }
+                });
             }
             app.UseMiddleware<ExceptionMiddleware>();
+
+            app.UseRateLimiter();
 
             app.UseHttpsRedirection();
 
