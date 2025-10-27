@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TaskFlow.Application.DTOs;
 using TaskFlow.Application.Interfaces;
 using TaskFlow.Core.Commons;
@@ -8,6 +10,8 @@ using TaskFlow.Infrastructure.Services;
 namespace TaskFlow.WebApi.Controllers
 {
     [Route("api/[controller]")]
+    [ApiVersion(1.0)]
+    [EnableRateLimiting("policy")]
     [ApiController]
     public class UserController : ControllerBase
     {

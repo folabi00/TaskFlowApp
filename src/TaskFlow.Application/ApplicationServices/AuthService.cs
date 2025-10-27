@@ -33,10 +33,10 @@ namespace TaskFlow.Application.ApplicationServices
             LoginResponseDTO loginResponse = new();
             try
             {
-                var validUser = await _userRepository.ValidateUser(username);
-                var userRole = await _roleRepository.GetRole(validUser.RoleId!.Value);
+                var validUser = await _userRepository.ValidateUser(username);                
                 if (validUser != null)
                 {
+                    var userRole = await _roleRepository.GetRole(validUser.RoleId!.Value);
                     var passwordCheck = _hashingService.VerifyPassword(password, validUser.PasswordHash, validUser.PasswordSalt);
                     if (passwordCheck)
                     {
@@ -57,7 +57,8 @@ namespace TaskFlow.Application.ApplicationServices
             catch (Exception ex)
             {
                 _logger.LogError($"[{ClassName}] [{methodName}] : Something went wrong validating User Details ", ex);
-                return loginResponse;
+                //return loginResponse;
+                throw;
             }
         }
     }

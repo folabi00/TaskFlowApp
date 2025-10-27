@@ -39,7 +39,7 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         {
             string methodName = nameof(GetAllUsersAsync);
             var startIndex = (pageNumber - 1) * pageSize;
-            var returnedUsers = await _appDBContext.Users.Skip(startIndex).Take(pageSize).ToListAsync();
+            var returnedUsers = await _appDBContext.Users.OrderBy(u => u.Id).Skip(startIndex).Take(pageSize).ToListAsync();
             _logger.LogInformation($"[{ClassName}] [{methodName}] : {returnedUsers.Count} number of users found");
 
             return returnedUsers;
@@ -165,8 +165,10 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         {
             string methodName = "ValidateUser";
             var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            _logger.LogInformation($"[{ClassName}] [{methodName}] : User {user.Email} found");
-
+            if (user is null)
+            {
+                _logger.LogInformation($"[{ClassName}] [{methodName}] : User not found");
+            }
             return user;
             
         }

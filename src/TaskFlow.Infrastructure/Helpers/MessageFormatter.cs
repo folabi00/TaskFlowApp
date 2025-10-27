@@ -20,5 +20,13 @@ namespace TaskFlow.Infrastructure.Helpers
             <p>If you did not create an account, ignore this email.</p>";
             return body;
         }
+
+        public static TEnum? ParseEnum<TEnum>(string input, bool ignoreCase = true) where TEnum : struct, Enum
+        {
+            if (Enum.TryParse<TEnum>(input, ignoreCase, out var result))
+                return result;
+
+            return null;
+        }
     }
 }
