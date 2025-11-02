@@ -3,6 +3,7 @@ using Serilog;
 using Serilog.AspNetCore;
 using TaskFlow.WebApi.Extensions;
 using TaskFlow.WebApi.Middlewares;
+using Microsoft.OpenApi;
 
 namespace TaskFlow.WebApi
 {
@@ -19,20 +20,17 @@ namespace TaskFlow.WebApi
             builder.Host.UseSerilog();
             var app = builder.Build();
 
-            var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            //var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
             Log.Information("Application starting...");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
+                app.UseSwagger(options => options.OpenApiVersion = OpenApiSpecVersion.OpenApi2_0);
                 app.UseSwaggerUI(options =>
                 {
-                    foreach (var desc in provider.ApiVersionDescriptions)
-                    {
-                        options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json",
-                                                desc.GroupName.ToUpperInvariant());
-                    }
+                    options.SwaggerEndpoint("/swagger/1.0/swagger.json", "TaskFlow API V1");
+                    options.SwaggerEndpoint("/swagger/2.0/swagger.json", "TaskFlow API V2");
                 });
             }
             app.UseMiddleware<ExceptionMiddleware>();

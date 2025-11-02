@@ -87,7 +87,7 @@ namespace TaskFlow.WebApi.Controllers
             return BadRequest(new BaseNullResponse());
 
         }
-        [HttpPatch("update-user")]
+        [HttpPut("update-user")]
         public async Task<IActionResult> UpdateUser(UserDTO user)
         {
             var response = new BaseResponse();

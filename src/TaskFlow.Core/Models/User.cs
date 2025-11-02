@@ -28,6 +28,8 @@ namespace TaskFlow.Core.Models
         public bool IsDeleted { get; set; }
        
         public ICollection<UserConfirmationToken> UserConfirmationTokens { get; set; } = new List<UserConfirmationToken>();
+        public ICollection<Task> Tasks { get; set; } = new List<Task>();
+
 
 
 

@@ -108,7 +108,7 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         public async Task UpdateUserAsync(UserDTO userDTO)
         {
             string methodName = nameof(UpdateUserAsync);
-            var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.RegistrationNumber == $"{userDTO.RegistrationNumber}");
+            var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.RegistrationNumber == userDTO.RegistrationNumber);
             if (user != null)
             {
                 var returnedUser = user;

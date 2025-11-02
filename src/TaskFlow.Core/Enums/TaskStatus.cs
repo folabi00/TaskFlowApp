@@ -10,8 +10,9 @@ namespace TaskFlow.Core.Enums
     {
         Initiated,
         InProgress,
-        Paused,
-        Completed
+        //Paused,
+        Completed,
+        Null
 
     }
     public enum TaskCompletionStatus

@@ -18,6 +18,10 @@ namespace TaskFlow.Core.Models
         public int DaysRunning { get; set; }
         public int CompletedInDays { get; set; } 
         public Guid? UserId { get; set; }
+        public User? User { get; set; }
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? UpdatedAt { get;set; }  
+        public DateTimeOffset? CompletedAt { get; set; }
                 
     }
     public enum Status { Initiated = 0, Ongoing = 1, Paused = 2, Completed = 3 }
