@@ -18,4 +18,9 @@ namespace TaskFlow.Core.Commons
         public string ResponseMessage { get; set; } = "Something went wrong";
         public object? Result { get; set; } = null;
     }
+    public enum DatabaseActionResult
+    {
+        Success,
+        Failed
+    }
 }

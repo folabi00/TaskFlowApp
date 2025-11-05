@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -105,26 +106,37 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task UpdateUserAsync(UserDTO userDTO)
+        public async Task<UpdateUserResultDTO> UpdateUserAsync(UpdateUserDTO userDTO)
         {
             string methodName = nameof(UpdateUserAsync);
-            var user = await _appDBContext.Users.FirstOrDefaultAsync(u => u.RegistrationNumber == $"{userDTO.RegistrationNumber}");
+            var user = await _appDBContext.Users.FindAsync(userDTO.Id);
             if (user != null)
             {
-                var returnedUser = user;
-                if (returnedUser != null)
+                user.FirstName = userDTO.FirstName;
+                user.LastName = userDTO.LastName;
+                user.Email = userDTO.Email;
+
+                await _appDBContext.SaveChangesAsync();
+                _logger.LogInformation($"[{ClassName}] [{methodName}] : User details updated for user with ID {user.Id} ");
+                var modifiedUser = new UpdateUserResultDTO()
                 {
-                    returnedUser.FirstName = userDTO.FirstName;
-                    returnedUser.LastName = userDTO.LastName;
-                    returnedUser.Email = userDTO.Email;
-
-                    await _appDBContext.SaveChangesAsync();
-                    _logger.LogInformation($"[{ClassName}] [{methodName}] : User details updated for user with Registration Number {userDTO.RegistrationNumber} ");
-
-                }                
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    RegistrationNumber = user.RegistrationNumber,
+                    CurrentTask = user.CurrentTask,
+                    TotalTasksAssigned = user.TotalTasksAssigned,
+                    TotalTasksCompleted = user.TotalTasksCompleted,
+                    TotalTasksFailed = user.TotalTasksFailed,
+                    EmailConfirmed = user.EmailConfirmed,
+                    HasCurrentTask = user.HasCurrentTask
+                };
+                return modifiedUser;
+                
             }
-            _logger.LogError($"[{ClassName}] [{methodName}] : Unable to find match for user with Registration Number {userDTO.RegistrationNumber} ");
-            return ;
+            _logger.LogError($"[{ClassName}] [{methodName}] : Unable to find match for user with ID {userDTO.Id} ");
+            return new UpdateUserResultDTO();
         }
 
         public async Task<bool> ConfirmEmailAsync(Guid userId, string hashToken)
@@ -171,6 +183,15 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
             }
             return user;
             
+        }
+
+        public async Task<bool> IsEmailUnique(string email, CancellationToken cancellationToken)
+        {
+            if (email.IsNullOrEmpty())
+            {
+                return false;
+            }
+            return !await _appDBContext.Users.AnyAsync(u => u.Email == email, cancellationToken);
         }
     }
 }

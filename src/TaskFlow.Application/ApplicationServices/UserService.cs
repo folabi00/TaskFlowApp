@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -49,24 +50,8 @@ namespace TaskFlow.Infrastructure.Services
             var response = new CreateUserResultDto();
             try
             {
-                var emailexist = await _userRepository.GetEmailCountAsync(userDTO.Email);
-                if (emailexist >= 1) 
-                {
-                    if(emailexist != -1)
-                    {
-                        _logger.LogInformation($"[{ClassName}] [{methodName}] : Email {userDTO.Email} exists in User record ");
-                        response.Email = userDTO.Email;
-                        response.RegistrationNumber = "01";
-                        return response;
-                    }
-                    _logger.LogInformation($"[{ClassName}] [{methodName}] : Unable to validate if email exist, please try again ");
-                    response.Email = userDTO.Email;
-                    response.RegistrationNumber = "02";
-                    return response;
-                }
                 byte[] passwordHash, passwordSalt;
                 _hashingService.HashPassword(userDTO.Password, out passwordHash, out passwordSalt);
-                //var generator = await GenerateRegNumber();
                 var generator = await _registrationNumberGenerator.GenerateRegNumberAsync();
                 var user = new User()
                 {
@@ -85,6 +70,7 @@ namespace TaskFlow.Infrastructure.Services
                 var emailBody = FormatEmailConfirmationBody(user.Id, user, token, _configuration["App:BaseUrl"] ?? "");
                 await _emailService.SendEmailAsync(user.Email, "ACCOUNT EMAIL CONFIRMATION", emailBody);
 
+                response.Id = user.Id;
                 response.Email = user.Email;
                 response.FirstName = user.FirstName;
                 response.LastName = user.LastName;
@@ -141,15 +127,6 @@ namespace TaskFlow.Infrastructure.Services
                         TotalTasksCompleted = user.TotalTasksCompleted,
                         TotalTasksFailed = user.TotalTasksFailed
                     };
-                    //userDTO.FirstName = user.FirstName;
-                    //userDTO.LastName = user.LastName;
-                    //userDTO.Email = user.Email;
-                    //userDTO.RegistrationNumber = user.RegistrationNumber;
-                    //userDTO.HasCurrentTask = user.HasCurrentTask;
-                    //userDTO.CurrentTask = user.CurrentTask;
-                    //userDTO.TotalTasksAssigned = user.TotalTasksAssigned;
-                    //userDTO.TotalTasksCompleted = user.TotalTasksCompleted;
-                    //userDTO.TotalTasksFailed = user.TotalTasksFailed;
                     users.Add(userDTO);
                 }
                 usersDTO.Items = users;
@@ -225,36 +202,38 @@ namespace TaskFlow.Infrastructure.Services
             }
         }
 
-        public async Task<UserDTO> UpdateUser(UserDTO userDTO)
+        public async Task<UpdateUserResultDTO> UpdateUser(UpdateUserDTO updateUserDTO)
         {
             var methodName = "UpdateUser";
             try
-            {
-                //var user = await _appDBContext.Users.FromSqlRaw("Select * from Users where RegistrationNumber = {0}", $"{userDTO.RegistrationNumber}").SingleOrDefaultAsync();
-                //if (user == null)
-                //{
-                //    _logger.LogInformation($"[{ClassName}] [{methodName}] : Unable to find match for user with Registration Number {userDTO.RegistrationNumber} ");
-                //    return new UserDTO() { FirstName = "", LastName = "", Email = "", RegistrationNumber = "" };
-                //}
-                //var returnedUser = await _appDBContext.Users.FindAsync(user.Id);
+            {                
+                var user = await _userRepository.UpdateUserAsync(updateUserDTO);
+                if(user.Id != Guid.Empty || user.RegistrationNumber.IsNullOrEmpty())
+                {
+                    var userDTO = new UpdateUserResultDTO()
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        RegistrationNumber = user.RegistrationNumber,
+                        CurrentTask = user.CurrentTask,
+                        TotalTasksAssigned = user.TotalTasksAssigned,
+                        TotalTasksCompleted = user.TotalTasksCompleted,
+                        TotalTasksFailed = user.TotalTasksFailed,
+                        EmailConfirmed = user.EmailConfirmed,
+                        HasCurrentTask = user.HasCurrentTask
+                    };
+                    return userDTO;
+                }
+                _logger.LogError($"[{ClassName}] [{methodName}] : User Id or Registration Number may be null");
+                return new UpdateUserResultDTO();
 
-                //if (returnedUser != null)
-                //{
-                //    returnedUser.FirstName = userDTO.FirstName;
-                //    returnedUser.LastName = userDTO.LastName;
-                //    returnedUser.Email = userDTO.Email;
-
-                //    await _appDBContext.SaveChangesAsync();
-                //    _logger.LogInformation($"[{ClassName}] [{methodName}] : User details updated for user with Registration Number {userDTO.RegistrationNumber} ");
-
-                //}
-                await _userRepository.UpdateUserAsync(userDTO);
-                return userDTO;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[{ClassName}] [{methodName}] : An Unexpected error occured '{ex.Message}' occured while updating user");
-                return new UserDTO();
+                return new UpdateUserResultDTO();
             }
 
         }

@@ -15,7 +15,7 @@ namespace TaskFlow.Application.Interfaces
         Task<UserDTO> GetUserById(Guid userID);
         Task<UserDTO> GetUserByRegistrationNumber(string registrationNumber);
         Task<CreateUserResultDto> CreateUser(CreateUserDTO userDTO);
-        Task<UserDTO> UpdateUser(UserDTO userDTO);
+        Task<UpdateUserResultDTO> UpdateUser(UpdateUserDTO userDTO);
         Task<bool> DeleteUser(Guid id, string registrationNumber);
         Task<bool> ConfirmEmail(Guid userId, string token);
         Task<bool> ResendConfirmation(Guid userId);

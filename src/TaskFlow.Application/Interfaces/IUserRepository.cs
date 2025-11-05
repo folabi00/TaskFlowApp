@@ -17,9 +17,10 @@ namespace TaskFlow.Application.Interfaces
         Task<List<User>> GetAllUsersAsync(int pageNumber, int pageSize);
         Task<User> GetUserByIdAsync(Guid userID);
         Task<User> GetUserByRegistrationNumberAsync(string registrationNumber);
-        Task UpdateUserAsync(UserDTO userDTO);
+        Task<UpdateUserResultDTO> UpdateUserAsync(UpdateUserDTO userDTO);
         Task<bool> ConfirmEmailAsync(Guid userId, string token);
         Task StoreUserTokenAsync(UserConfirmationToken token);
         Task<User> ValidateUser(string email);
+        Task<bool> IsEmailUnique(string email, CancellationToken cancellationToken);
     }
 }

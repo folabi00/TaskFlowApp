@@ -27,6 +27,7 @@ namespace TaskFlow.Application.ApplicationServices
         public async Task<string> GenerateJwtToken(User user, string role)
         {
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
+            var encryption = new SymmetricSignatureProvider(_key, SecurityAlgorithms.Aes256Encryption);
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.FirstName+user.LastName),
