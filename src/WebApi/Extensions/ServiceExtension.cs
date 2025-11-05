@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -6,7 +7,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.RateLimiting;
 using TaskFlow.Application.ApplicationServices;
+using TaskFlow.Application.DTOs;
 using TaskFlow.Application.Interfaces;
+using TaskFlow.Application.Validations;
 using TaskFlow.Infrastructure.Helpers;
 using TaskFlow.Infrastructure.Persistence.Data;
 using TaskFlow.Infrastructure.Persistence.Repositories;
@@ -79,6 +82,9 @@ namespace TaskFlow.WebApi.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddValidatorsFromAssemblyContaining<CreateUserDTOValidator>();
+            //services.AddScoped<IValidator<CreateUserDTO>, CreateUserDTOValidator>();
+
 
 
             services.AddMemoryCache();

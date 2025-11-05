@@ -7,6 +7,7 @@ using TaskFlow.Core.Commons;
 using TaskStatus = TaskFlow.Core.Enums.TaskStatus;
 using TaskFlow.Infrastructure.Persistence.Data;
 using TaskFlow.Infrastructure.Services;
+using FluentValidation;
 
 namespace TaskFlow.WebApi.Controllers
 {
@@ -16,16 +17,26 @@ namespace TaskFlow.WebApi.Controllers
     public class TaskController : ControllerBase
     {
         private readonly ITaskService _taskService;
-        public TaskController(ITaskService taskService)
+        private readonly IValidator<CreateTaskRequestDto> _createTaskValidator;
+        private readonly IValidator<UpdateTaskRequestDto> _updateTaskValidator;
+        private readonly IValidator<CloseTaskRequestDto> _closeTaskValidator;
+        public TaskController(ITaskService taskService, IValidator<CreateTaskRequestDto> createTaskValidator, 
+            IValidator<UpdateTaskRequestDto> updateTaskValidator, IValidator<CloseTaskRequestDto> closeTaskValidator)
         {
             _taskService = taskService;
+            _createTaskValidator = createTaskValidator;
+            _updateTaskValidator = updateTaskValidator;
+            _closeTaskValidator = closeTaskValidator;
         }
 
         [HttpGet("get-all-tasks")]
         public async Task<IActionResult> GetAllTask([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             var response = new BaseResponse();
-
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return BadRequest(new BaseNullResponse { ResponseMessage = "Invalid input parameters" });
+            }
             var tasks = await _taskService.GetAllTasks(pageNumber, pageSize);
             if (tasks != null)
             {
@@ -45,6 +56,10 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> GetTaskByID(long id)
         {
             var response = new BaseResponse();
+            if (id <= 0 )
+            {
+                return BadRequest(new BaseNullResponse { ResponseMessage = "Invalid input parameters" });
+            }
             var task = await _taskService.GetTaskById(id);
             if (task != null)
             {
@@ -64,6 +79,18 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> CreateTask(CreateTaskRequestDto user)
         {
             var response = new BaseResponse();
+            var validationResult = await _createTaskValidator.ValidateAsync(user);
+            if (!validationResult.IsValid)
+            {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+                response.ResponseMessage = "One or more validation error occured";
+                response.Result = errorResponse;
+                return BadRequest(response);
+            }
             var result = await _taskService.CreateTask(user);
             if (result != null && result.TaskStatus != TaskStatus.Null)
             {                
@@ -78,6 +105,18 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> UpdateTask(long id, UpdateTaskRequestDto user)
         {
             var response = new BaseResponse();
+            var validationResult = await _updateTaskValidator.ValidateAsync(user);
+            if (!validationResult.IsValid)
+            {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+                response.ResponseMessage = "One or more validation error occured";
+                response.Result = errorResponse;
+                return BadRequest(response);
+            }
             var result = await _taskService.UpdateTask(id, user);
             if (result != null)
             {
@@ -99,9 +138,21 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> CloseTask(long id, CloseTaskRequestDto user)
         {
             var response = new BaseResponse();
-            if(id == 0)
+            if(id <= 0)
             {
-                return NotFound(new BaseResponse() { ResponseMessage = "Invalid Task Id"});
+                return BadRequest(new BaseResponse() { ResponseMessage = "Invalid Task Id"});
+            }
+            var validationResult = await _closeTaskValidator.ValidateAsync(user);
+            if (!validationResult.IsValid)
+            {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+                response.ResponseMessage = "One or more validation error occured";
+                response.Result = errorResponse;
+                return BadRequest(response);
             }
             var result = await _taskService.CloseTask(id, user);
             if (result)
@@ -119,6 +170,10 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> DeleteTask(long id)
         {
             var response = new BaseResponse();
+            if (id <= 0)
+            {
+                return BadRequest(new BaseResponse() { ResponseMessage = "Invalid Task Id" });
+            }
             var result = await _taskService.DeleteTask(id);
             if (result)
             {

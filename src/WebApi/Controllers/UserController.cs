@@ -1,10 +1,14 @@
 ﻿using Asp.Versioning;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
 using TaskFlow.Application.DTOs;
 using TaskFlow.Application.Interfaces;
 using TaskFlow.Core.Commons;
+using TaskFlow.Core.Models;
 using TaskFlow.Infrastructure.Services;
 
 namespace TaskFlow.WebApi.Controllers
@@ -16,16 +20,24 @@ namespace TaskFlow.WebApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly IValidator<CreateUserDTO> _createUserValidator;
+        private readonly IValidator<UpdateUserDTO> _updateValidator;
+
+        public UserController(IUserService userService, IValidator<CreateUserDTO> createUserValidator, IValidator<UpdateUserDTO> updateValidator)
         {
             _userService = userService;
+            _createUserValidator = createUserValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpGet("get-all-users")]
         public async Task<IActionResult> GetAllUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             var response = new BaseResponse();
-
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return BadRequest(new BaseNullResponse { ResponseMessage = "Invalid input parameters" });
+            }
             var users = await _userService.GetAllUsers(pageNumber,pageSize);
             if (users != null)
             {
@@ -46,6 +58,10 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> GetUserByID(Guid id)
         {
             var response = new BaseResponse();
+            if (id == Guid.Empty)
+            {
+                return BadRequest(new BaseNullResponse() { ResponseMessage = "Invalid input parameters" });
+            }
             var user = await _userService.GetUserById(id);
             if (user != null)
             {
@@ -65,21 +81,21 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> CreateUser(CreateUserDTO user)
         {
             var response = new BaseResponse();
+            var validationResult = await _createUserValidator.ValidateAsync(user);
+            if (!validationResult.IsValid)
+            {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+                response.ResponseMessage = "One or more validation error occured"; 
+                response.Result = errorResponse;
+                return BadRequest(response);
+            }
             var result = await _userService.CreateUser(user);            
             if (result != null)
             {
-                if (result.RegistrationNumber == "01")
-                {
-                    response.ResponseMessage = "Email Already Exist";
-                    response.Result = result;
-                    return BadRequest(response);
-                }
-                else if (result.RegistrationNumber == "02")
-                {
-                    response.ResponseMessage = "Email Validation Error";
-                    response.Result = result;
-                    return BadRequest(response);
-                }
                 response.ResponseMessage = "User creation initiated";
                 response.Result = result;
                 return Created("Create User",response);
@@ -88,19 +104,31 @@ namespace TaskFlow.WebApi.Controllers
 
         }
         [HttpPut("update-user")]
-        public async Task<IActionResult> UpdateUser(UserDTO user)
+        public async Task<IActionResult> UpdateUser(UpdateUserDTO user )
         {
             var response = new BaseResponse();
+            var validationResult = await _updateValidator.ValidateAsync(user);
+            if (!validationResult.IsValid)
+            {
+                var errorResponse = validationResult.Errors.Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Error = e.ErrorMessage
+                });
+                response.ResponseMessage = "One or more validation error occured";
+                response.Result = errorResponse;
+                return BadRequest(response);
+            }
             var result = await _userService.UpdateUser(user);
             if (result != null)
             {
                 if (string.IsNullOrEmpty(result?.RegistrationNumber))
                 {
-                    response.ResponseMessage = $"User {user.RegistrationNumber}'s details not found";
+                    response.ResponseMessage = $"User {user.Id}'s details not found";
                     response.Result = user;
                     return NotFound(response);
                 }
-                response.ResponseMessage = $"User {user.RegistrationNumber}'s details updated";
+                response.ResponseMessage = $"User {user.Id}'s details updated";
                 response.Result = user;
                 return Ok(response);
             }
@@ -112,6 +140,10 @@ namespace TaskFlow.WebApi.Controllers
         public async Task<IActionResult> DeleteUser(Guid id, string RegistrationNumber)
         {
             var response = new BaseResponse();
+            if (id == Guid.Empty || RegistrationNumber.IsNullOrEmpty())
+            {
+                return BadRequest(new BaseNullResponse() { ResponseMessage = "Invalid input parameters" });
+            }
             var result = await _userService.DeleteUser(id, RegistrationNumber);
             if (result == true)
             {
@@ -125,6 +157,10 @@ namespace TaskFlow.WebApi.Controllers
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string token)
         {
+            if(userId == Guid.Empty || token.IsNullOrEmpty())
+            {
+                return BadRequest(new BaseNullResponse() { ResponseMessage = "Invalid input parameters" });
+            }
             var response = new BaseResponse();
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId.ToString()))
             {

@@ -12,7 +12,6 @@ namespace TaskFlow.Application.DTOs
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        //public string? Password { get; set; }
         public bool EmailConfirmed { get; set; } = false;
         public string? RegistrationNumber { get; set; }
         public bool HasCurrentTask { get; set; }
@@ -31,16 +30,36 @@ namespace TaskFlow.Application.DTOs
 
     public class CreateUserResultDto
     {
+        public Guid Id { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? Email { get; set; }
-        //public string? Password { get; set; }
         public bool EmailConfirmed { get; set; } = false;
-
         public string? RegistrationNumber { get; set; }
         public string? CurrentTask { get; set; }
 
+    }
+    public class UpdateUserDTO
+    {
+        public Guid Id { get; set; }  
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
 
+    public class UpdateUserResultDTO
+    {
+        public Guid Id { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public bool EmailConfirmed { get; set; } = false;
+        public string? RegistrationNumber { get; set; }
+        public bool HasCurrentTask { get; set; }
+        public string? CurrentTask { get; set; }
+        public int TotalTasksAssigned { get; set; }
+        public int TotalTasksCompleted { get; set; }
+        public int TotalTasksFailed { get; set; }
     }
 }
 
