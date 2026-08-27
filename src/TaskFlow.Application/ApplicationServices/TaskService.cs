@@ -48,7 +48,7 @@ namespace TaskFlow.Application.ApplicationServices
                 response.TaskName = task.TaskName;
                 response.TaskDescription = task.TaskDescription;
                 response.TaskStatus = task.TaskStatus;
-                response.User = task.User.Email;
+                response.User = task.User.Email ?? string.Empty;
                 response.UserId = taskDto.UserId;
                 response.TaskCompletionStatus = task.TaskCompletionStatus;
                 response.CreatedAt = task.CreatedAt;
@@ -71,6 +71,7 @@ namespace TaskFlow.Application.ApplicationServices
             string methodName = "DeleteTask";
             try
             {
+
                 var status = await _taskRepository.DeleteTaskAsync(id);
                 if (status)
                 {
@@ -82,7 +83,7 @@ namespace TaskFlow.Application.ApplicationServices
             catch (Exception ex)
             {
                 _logger.LogError($"[{ClassName}] [{methodName}] : Error occured while trying to delete task ", ex.Message);
-                throw;
+                return false;
             }
         }
         public async Task<PaginatedResponse<TaskDTO>> GetAllTasks(int pageNumber, int pageSize)
@@ -223,7 +224,7 @@ namespace TaskFlow.Application.ApplicationServices
             try
             {
                 var result = await _taskRepository.CompleteTaskStatusAsync(task.TaskCompletionStatus, id);
-                if(result.ToString().ToLower() == "success")
+                if (result == DatabaseActionResult.Success)
                 {
                     return true;    
                 }

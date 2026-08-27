@@ -1,15 +1,18 @@
 ﻿using Asp.Versioning;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.RateLimiting;
 using TaskFlow.Application.ApplicationServices;
 using TaskFlow.Application.DTOs;
 using TaskFlow.Application.Interfaces;
 using TaskFlow.Application.Validations;
+using TaskFlow.Core.Models;
 using TaskFlow.Infrastructure.Helpers;
 using TaskFlow.Infrastructure.Persistence.Data;
 using TaskFlow.Infrastructure.Persistence.Repositories;
@@ -21,74 +24,110 @@ namespace TaskFlow.WebApi.Extensions
     {
         public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddApiVersioning(options =>
-            //{
-            //    options.DefaultApiVersion = new ApiVersion(1, 0);
-            //    options.AssumeDefaultVersionWhenUnspecified = true;
-            //    options.ReportApiVersions = true;
-            //    options.ApiVersionReader = new MediaTypeApiVersionReader("v"); //Accept: application/json;v=1
-            //})
-            //.AddApiExplorer(options =>
-            //{
-            //    options.GroupNameFormat = "'v'VVV";
-            //    options.SubstituteApiVersionInUrl = false;
-            //});
             services.AddControllers();
             services.AddEndpointsApiExplorer();
-            //services.ConfigureOptions<ConfigureSwaggerOptions>();
+
             services.AddApiVersioning(options =>
             {
-                
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.ReportApiVersions = true;
                 options.ApiVersionReader = new MediaTypeApiVersionReader("v");
             });
+
             services.AddSwaggerGen(options =>
             {
-                
-                options.SwaggerDoc("1.0", new OpenApiInfo { Title = "TaskFlow API", Version = "1.0" });
-                options.SwaggerDoc("2.0", new OpenApiInfo { Title = "TaskFlow API", Version = "2.0" });
-                // Resolving Conflicts
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "TaskFlow API", Version = "v1" });
+                options.SwaggerDoc("v2", new OpenApiInfo { Title = "TaskFlow API", Version = "v2" });
+
                 options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                options.DocInclusionPredicate((version, apiDesc) =>
+
+                options.DocInclusionPredicate((docName, apiDesc) =>
                 {
-                    if (!apiDesc.TryGetMethodInfo(out MethodInfo method))
-                        return false; 
+                    if (!apiDesc.TryGetMethodInfo(out MethodInfo method)) return false;
+
                     var methodVersions = method.GetCustomAttributes(true)
                         .OfType<ApiVersionAttribute>()
                         .SelectMany(attr => attr.Versions);
+
                     var controllerVersions = method.DeclaringType?
                         .GetCustomAttributes(true)
                         .OfType<ApiVersionAttribute>()
-                        .SelectMany(attr => attr.Versions);
+                        .SelectMany(attr => attr.Versions) ?? Enumerable.Empty<ApiVersion>();
+
                     var allVersions = methodVersions.Union(controllerVersions).Distinct();
-                    return allVersions.Any(v => v.ToString() == version);
+
+                    return docName switch
+                    {
+                        "v1" => allVersions.Any(v => v.MajorVersion == 1),
+                        "v2" => allVersions.Any(v => v.MajorVersion == 2),
+                        _ => false
+                    };
                 });
 
-            });
-            //services.AddSwaggerGen();
-            
+                var jwtSecurityScheme = new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Description = "Enter: Bearer {your JWT token}",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = JwtBearerDefaults.AuthenticationScheme
+                    }
+                };
 
-            services.AddDbContext<AppDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), 
-                sql => sql.MigrationsAssembly("TaskFlow.Infrastructure")));
+                options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, jwtSecurityScheme);
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    [jwtSecurityScheme] = Array.Empty<string>()
+                });
+            });
+
+            services.AddDbContext<AppDBContext>(options =>
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    sql => sql.MigrationsAssembly("TaskFlow.Infrastructure")));
+
+            var jwtSecret = configuration["JWT_SECRET_KEY"] ?? throw new InvalidOperationException("JWT_SECRET_KEY not configured.");
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "MyApp",
+                        ValidateAudience = true,
+                        ValidAudience = "MyAppUsers",
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = signingKey,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(1)
+                    };
+                });
+
+            services.AddSingleton<IMessagePublisher<LogEntry>, LogMessagePublisher>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<IEmailService, EmailSender>();
             services.AddScoped<IUserRegistrationNumberGenerator, UserRegistrationNumberGenerator>();
             services.AddScoped<IHashingService, HashingUtility>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ITokenService, TokenService>();                  
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<IGenericRepository<LogEntry>, GenericRepository<LogEntry>>();
             services.AddValidatorsFromAssemblyContaining<CreateUserDTOValidator>();
-            //services.AddScoped<IValidator<CreateUserDTO>, CreateUserDTOValidator>();
-
-
+            services.AddHostedService<LogMessageConsumer>();
 
             services.AddMemoryCache();
-
             services.AddRateLimiter(options =>
             {
                 options.AddPolicy("policy", context =>
@@ -106,7 +145,7 @@ namespace TaskFlow.WebApi.Extensions
                 });
             });
 
-            return services;                
+            return services;
         }
     }
 }

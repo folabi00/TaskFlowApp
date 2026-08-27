@@ -51,10 +51,17 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         public async Task<bool> DeleteTaskAsync(long id)
         {
             string methodName = nameof(DeleteTaskAsync);
+
             var task = await _dbContext.Tasks.FindAsync(id);
-            _dbContext.Tasks.Remove(task!);
+            if (task is null)
+            {
+                _logger.LogWarning("[{ClassName}] [{MethodName}] : Task {TaskId} not found", ClassName, methodName, id);
+                return false;
+            }
+
+            _dbContext.Tasks.Remove(task);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation($"[{ClassName}] [{methodName}] : Task {task.TaskName} deleted  at {DateTimeOffset.UtcNow} ");
+            _logger.LogInformation("[{ClassName}] [{MethodName}] : Task {TaskName} deleted at {UtcNow}", ClassName, methodName, task.TaskName, DateTimeOffset.UtcNow);
 
             return true;
         }
@@ -77,15 +84,19 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
 
             return returnedTasks;
         }
-        public async Task<IEnumerable<TaskEntity>> GetAllTasksPerUserPaginated(int pageNumber, int pageSize , Guid userId)
+        public async Task<IEnumerable<TaskEntity>> GetAllTasksPerUserPaginated(int pageNumber, int pageSize, Guid userId)
         {
             string methodName = nameof(GetAllTasksPerUserPaginated);
             var startIndex = (pageNumber - 1) * pageSize;
-            var userTasks = await _dbContext.Tasks.Where(u => u.UserId == userId).ToListAsync();
-            var returnedTasks = userTasks.OrderBy(u => u.Id).Skip(startIndex).Take(pageSize);
-            //var returnedTasks = await _dbContext.Tasks.OrderBy(u => u.UserId == userId).Skip(startIndex).Take(pageSize).ToListAsync();
-            _logger.LogInformation($"[{ClassName}] [{methodName}] : {userTasks.Count} number of tasks found");
 
+            var returnedTasks = await _dbContext.Tasks
+                .Where(u => u.UserId == userId)
+                .OrderBy(u => u.Id)
+                .Skip(startIndex)
+                .Take(pageSize)
+                .ToListAsync();
+
+            _logger.LogInformation("[{ClassName}] [{MethodName}] : {Count} task(s) found for user {UserId}", ClassName, methodName, returnedTasks.Count, userId);
             return returnedTasks;
         }
 
@@ -93,8 +104,14 @@ namespace TaskFlow.Infrastructure.Persistence.Repositories
         {
             string methodName = nameof(GetTasksByIdAsync);
             var task = await _dbContext.Tasks.FindAsync(id);
-            _logger.LogInformation($"[{ClassName}] [{methodName}] : {task.TaskName} found");
 
+            if (task is null)
+            {
+                _logger.LogWarning("[{ClassName}] [{MethodName}] : Task {TaskId} not found", ClassName, methodName, id);
+                return null;
+            }
+
+            _logger.LogInformation("[{ClassName}] [{MethodName}] : {TaskName} found", ClassName, methodName, task.TaskName);
             return task;
         }
 

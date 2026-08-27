@@ -25,8 +25,6 @@ namespace TaskFlow.Application.ApplicationServices
             _tokenService = tokenService;
             _roleRepository = roleRepository;
         }
-        public Task<bool> IsValidUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
         public async Task<LoginResponseDTO> ValidateUserLogin(string username, string password)
         {
             string methodName = nameof(ValidateUserLogin);

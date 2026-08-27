@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFlow.Application.DTOs;
 
 namespace TaskFlow.Application.Interfaces
 {
-    public interface IAuthService
+    public interface IGenericRepository <T> where T : class
     {
-        Task<LoginResponseDTO> ValidateUserLogin(string username, string password);
+        Task AddEntity(T entity);
+        Task DeleteEntity(string entity);
+        Task SaveChanges();
     }
 }

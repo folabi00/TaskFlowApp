@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TaskFlow.Core.Models
 {
@@ -15,7 +11,8 @@ namespace TaskFlow.Core.Models
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset ExpiresAt { get; set; }
         public bool IsUsed { get; set; }
-        public string TokenPurposee { get; set; } = "Email Confirmation";
 
+        // Renamed for code quality; mapped to existing DB column in configuration.
+        public string TokenPurpose { get; set; } = "Email Confirmation";
     }
 }

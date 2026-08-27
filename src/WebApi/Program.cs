@@ -26,19 +26,21 @@ namespace TaskFlow.WebApi
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger(options => options.OpenApiVersion = OpenApiSpecVersion.OpenApi2_0);
+                app.UseSwagger();
                 app.UseSwaggerUI(options =>
                 {
-                    options.SwaggerEndpoint("/swagger/1.0/swagger.json", "TaskFlow API V1");
-                    options.SwaggerEndpoint("/swagger/2.0/swagger.json", "TaskFlow API V2");
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API V1");
+                    options.SwaggerEndpoint("/swagger/v2/swagger.json", "TaskFlow API V2");
                 });
             }
             app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<RequestResponseLogMiddleware>();
 
             app.UseRateLimiter();
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
